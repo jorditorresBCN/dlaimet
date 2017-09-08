@@ -1,0 +1,7 @@
+.idea
+*.pyc
+downloads
+train
+cifar-10
+data
+cifar-10_data
