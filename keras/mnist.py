@@ -14,7 +14,7 @@ from keras.layers import Conv2D, MaxPooling2D
 from keras import backend as K
 
 batch_size = 64
-epochs = 10
+epochs = 3
 learning_rate = 0.01
 
 tensorboard_dir = "tb"
