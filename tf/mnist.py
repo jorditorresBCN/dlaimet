@@ -42,12 +42,7 @@ tensorboard_dir = "tb/run1"
 tensorboard_active = True
 
 
-def main(_):
-    # Import data
-    mnist = input_data.read_data_sets(FLAGS.data_dir, one_hot=True)
-
-    # Create the model
-    x = tf.placeholder(tf.float32, [None, 784])
+def model(x):
     x2 = tf.reshape(x, [-1, 28, 28, 1])
     tf.summary.image("images", x2)
     net = tf.layers.conv2d(x2, 20, [5, 5], activation=tf.nn.relu)
@@ -56,42 +51,41 @@ def main(_):
     net = tf.layers.max_pooling2d(net, [2, 2], [2, 2])
     net = tf.contrib.layers.flatten(net)
     net = tf.layers.dense(net, 500, activation=tf.nn.relu)
-    y = tf.layers.dense(net, 10)
+    return tf.layers.dense(net, 10)
 
-    # Define loss and optimizer
-    y_ = tf.placeholder(tf.float32, [None, 10])
 
+def get_loss(y_, y):
     with tf.name_scope('cross_entropy'):
         diff = tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y)
         with tf.name_scope('total'):
             cross_entropy = tf.reduce_mean(diff)
     tf.summary.scalar('cross_entropy', cross_entropy)
+    return cross_entropy
 
+
+def get_train_step(cross_entropy):
     with tf.name_scope('train'):
         train_step = tf.train.AdadeltaOptimizer(learning_rate=LEARNING_RATE).minimize(cross_entropy)
+    return train_step
 
+
+def get_accuracy(y_, y):
     with tf.name_scope('accuracy'):
         with tf.name_scope('correct_prediction'):
             correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
         with tf.name_scope('accuracy'):
             accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     tf.summary.scalar('accuracy', accuracy)
+    return accuracy
 
-    sess = tf.InteractiveSession()
-    if tensorboard_active:
-        merged = tf.summary.merge_all()
-        train_writer = tf.summary.FileWriter(tensorboard_dir + '/train',
-                                             sess.graph)
-        test_writer = tf.summary.FileWriter(tensorboard_dir + '/test')
-    tf.global_variables_initializer().run()
-    tf.local_variables_initializer().run()
-    # Train
+
+def train(mnist, sess, x, y_, accuracy, train_step, train_writer, test_writer, merged):
     global_step = 0
     for epochid in range(N_EPOCHS):
-        print("Running epoch %d ..." % (epochid+1))
+        print("Running epoch %d ..." % (epochid + 1))
         for iterid in range(N_ITERATIONS):
-            percent = (100*(iterid+1))/N_ITERATIONS
-            sys.stdout.write('\r %.f%% (%d/%d) ' % (percent, (iterid+1), N_ITERATIONS))
+            percent = (100 * (iterid + 1)) / N_ITERATIONS
+            sys.stdout.write('\r %.f%% (%d/%d) ' % (percent, (iterid + 1), N_ITERATIONS))
             batch_xs, batch_ys = mnist.train.next_batch(batch_size=BATCH_SIZE)
             if tensorboard_active:
                 summary, _ = sess.run([merged, train_step], feed_dict={x: batch_xs, y_: batch_ys})
@@ -103,11 +97,39 @@ def main(_):
         # Test trained model
         if tensorboard_active:
             acc, summary = sess.run([accuracy, merged], feed_dict={x: mnist.test.images,
-                                            y_: mnist.test.labels})
+                                                                   y_: mnist.test.labels})
             test_writer.add_summary(summary, global_step)
         else:
             acc = sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels})
         print(" --> Accuracy: ", acc)
+
+
+def main(_):
+    # Import data
+    mnist = input_data.read_data_sets(FLAGS.data_dir, one_hot=True)
+
+    # Create the model
+    x = tf.placeholder(tf.float32, [None, 784])
+    y = model(x)
+
+    # Define loss and optimizer
+    y_ = tf.placeholder(tf.float32, [None, 10])
+
+    cross_entropy = get_loss(y_, y)
+    train_step = get_train_step(cross_entropy)
+    accuracy = get_accuracy(y_, y)
+
+    sess = tf.InteractiveSession()
+
+    if tensorboard_active:
+        merged = tf.summary.merge_all()
+        train_writer = tf.summary.FileWriter(tensorboard_dir + '/train',
+                                             sess.graph)
+        test_writer = tf.summary.FileWriter(tensorboard_dir + '/test')
+    tf.global_variables_initializer().run()
+    tf.local_variables_initializer().run()
+
+    train(mnist, sess, x, y_, accuracy, train_step, train_writer, test_writer, merged)
 
 
 if __name__ == '__main__':
