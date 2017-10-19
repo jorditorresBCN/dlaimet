@@ -79,7 +79,7 @@ def get_accuracy(y_, y):
     return accuracy
 
 
-def train(mnist, sess, x, y_, accuracy, train_step, train_writer, test_writer, merged):
+def train(mnist, sess, x, y_, accuracy, train_step, train_writer=None, test_writer=None, merged=None):
     global_step = 0
     for epochid in range(N_EPOCHS):
         print("Running epoch %d ..." % (epochid + 1))
@@ -126,6 +126,10 @@ def main(_):
         train_writer = tf.summary.FileWriter(tensorboard_dir + '/train',
                                              sess.graph)
         test_writer = tf.summary.FileWriter(tensorboard_dir + '/test')
+    else:
+        train_writer = None
+        test_writer = None
+        merged = None
     tf.global_variables_initializer().run()
     tf.local_variables_initializer().run()
 
