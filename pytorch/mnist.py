@@ -1,5 +1,6 @@
 from __future__ import print_function
 import argparse
+import sys
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -25,7 +26,7 @@ parser.add_argument('--seed', type=int, default=1, metavar='S',
                     help='random seed (default: 1)')
 parser.add_argument('--log-interval', type=int, default=10, metavar='N',
                     help='how many batches to wait before logging training status')
-args = parser.parse_args()
+args, unparsed = parser.parse_known_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
 
 torch.manual_seed(args.seed)
@@ -93,7 +94,7 @@ def train(epoch):
         loss.backward()
         optimizer.step()
         if batch_idx % args.log_interval == 0:
-            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+            sys.stdout.write('\r Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                        100. * batch_idx / len(train_loader), loss.data[0]))
 
@@ -113,6 +114,7 @@ def test(epoch):
 
     test_loss = test_loss
     test_loss /= len(test_loader)  # loss function already averages over batch size
+    print("\n### TEST ###")
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
