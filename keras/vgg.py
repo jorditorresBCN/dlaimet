@@ -11,6 +11,7 @@ from __future__ import print_function
 import warnings
 
 from read_dataset import load_data
+from multi_gpu import make_parallel
 from keras.models import Model
 from keras.layers import Flatten, Dense, Input
 from keras.layers import Conv2D
@@ -34,6 +35,7 @@ LEARNING_RATE = 0.0001
 WD = 1e-6
 EPOCHS = 200
 BATCH_SIZE = 32
+NUM_GPU = 1
 
 
 def VGG19(include_top=True, weights='imagenet', input_tensor=None, input_shape=None, pooling=None, classes=1000):
@@ -189,6 +191,9 @@ def VGG19(include_top=True, weights='imagenet', input_tensor=None, input_shape=N
 
 if __name__ == '__main__':
     model = VGG19(include_top=True, weights=None, classes=10, input_shape=(32, 32, 3))
+
+    if NUM_GPU > 1:
+        model = make_parallel(model, NUM_GPU)
 
     num_classes = 10
 
