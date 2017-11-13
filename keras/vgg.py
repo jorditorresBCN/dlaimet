@@ -9,6 +9,7 @@
 from __future__ import print_function
 
 import warnings
+import argparse
 
 from read_dataset import load_data
 from multi_gpu import make_parallel
@@ -29,13 +30,20 @@ import tensorflow as tf
 WEIGHTS_PATH = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.1/vgg19_weights_tf_dim_ordering_tf_kernels.h5'
 WEIGHTS_PATH_NO_TOP = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.1/vgg19_weights_tf_dim_ordering_tf_kernels_notop.h5'
 
-DATASET_DIR = "/app/data/keras/cifar-10"
+parser = argparse.ArgumentParser()
+parser.add_argument('--num_gpu', type=int, default=1, help='Number of GPUs to perform training')
+FLAGS, unparsed = parser.parse_known_args()
+
+DATASET_DIR = "cifar-10-batches-py"
 IMG_SIZE = 224
 LEARNING_RATE = 0.0001
 WD = 1e-6
-EPOCHS = 200
+EPOCHS = 1
 BATCH_SIZE = 32
-NUM_GPU = 1
+NUM_GPU = FLAGS.num_gpu
+print("GPUS FOR TRAINING: %d" % NUM_GPU)
+
+def VGG19(include_top=True, weights='imagenet', input_tensor=None, input_shape=None, pooling=None, classes=1000):
 
 
 def VGG19(include_top=True, weights='imagenet', input_tensor=None, input_shape=None, pooling=None, classes=1000):
