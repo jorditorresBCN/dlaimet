@@ -44,9 +44,6 @@ NUM_GPU = FLAGS.num_gpu
 print("GPUS FOR TRAINING: %d" % NUM_GPU)
 
 def VGG19(include_top=True, weights='imagenet', input_tensor=None, input_shape=None, pooling=None, classes=1000):
-
-
-def VGG19(include_top=True, weights='imagenet', input_tensor=None, input_shape=None, pooling=None, classes=1000):
     """Instantiates the VGG19 architecture.
 
     Optionally loads weights pre-trained
